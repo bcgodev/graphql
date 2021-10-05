@@ -144,8 +144,17 @@ func (c *Client) runWithJSON(ctx context.Context, req *Request, resp interface{}
 		return errors.Wrap(err, "decoding response")
 	}
 	if len(gr.Errors) > 0 {
-		// return first error
-		return gr.Errors[0]
+		errs := gr.Errors
+		err := errs[0]
+
+		if len(gr.Errors) > 1 {
+			errs = errs[1:]
+			for _, e := range errs {
+				err.Message = fmt.Sprintf("%s:%s", err.Message, e.Message)
+			}
+		}
+
+		return err
 	}
 	return nil
 }
